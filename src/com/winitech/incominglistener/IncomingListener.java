@@ -18,24 +18,24 @@ public class IncomingListener extends MediaStreamActionNotify3Base
 {	
 	private Gson gson = new Gson();
 	
-	private void broadcastWebSocketStr(IVHost vhost, WebSocket mWebSocketTest, String messageStr) {
+	/**
+	 * websocket으로 스트링을 브로트캐스트
+	 * @param vhost IVHost 객체
+	 * @param mWebSocket 브로드캐스트 보낼 websocket 객체
+	 * @param messageStr 브로드캐스트할 스트링
+	 */
+	private void broadcastWebSocketStr(IVHost vhost, WebSocket mWebSocket, String messageStr) {
 		boolean isMaskOutgoingMessages = vhost.getWebSocketContext().isMaskOutgoingMessages();
 		WebSocketMessage messageText = WebSocketMessage.createMessageText(isMaskOutgoingMessages, messageStr);
-		mWebSocketTest.broadcastWebSocketMessage(messageText);
+		mWebSocket.broadcastWebSocketMessage(messageText);
 	}
 	
-	private int getVhostStreamingPort(IVHost vhost) {
-		HostPortList portList = vhost.getHostPortsList();
-		for(int i = 0; i < portList.size(); i++) {
-			HostPort hostPort = portList.get(i);
-			if( hostPort.getTypeStr().equals("Streaming") )
-				return hostPort.getPort();
-		}
-		
-		return -1;
-	}
-	
-	private WebSocket getWebSocketTest(IVHost vhost) {
+	/**
+	 * vhost에 포함된 HTTP Provider 중에서 WebSocket 객체 획득
+	 * @param vhost 찾을 IVHost 객체
+	 * @return WebSocket 객체
+	 */
+	private WebSocket getWebSocket(IVHost vhost) {
 		HostPortList portList = vhost.getHostPortsList();
 		for(int i = 0; i < portList.size(); i++) {
 			HostPort hostPort = portList.get(i);
@@ -61,7 +61,7 @@ public class IncomingListener extends MediaStreamActionNotify3Base
 		String appName = client.getApplication().getName();
 		String appInstanceName =client.getAppInstance().getName();
 		
-		WebSocket mWebSocketTest = getWebSocketTest( vhost );
+		WebSocket mWebSocketTest = getWebSocket( vhost );
 		IncomingStreamAddr mIncomingStreamAddr = new IncomingStreamAddr(true, vhost.getName(), appName, appInstanceName, streamName);
 		
 		broadcastWebSocketStr(vhost, mWebSocketTest, gson.toJson(mIncomingStreamAddr));
@@ -77,7 +77,7 @@ public class IncomingListener extends MediaStreamActionNotify3Base
 		String appName = client.getApplication().getName();
 		String appInstanceName =client.getAppInstance().getName();
 		
-		WebSocket mWebSocketTest = getWebSocketTest( vhost );
+		WebSocket mWebSocketTest = getWebSocket( vhost );
 		IncomingStreamAddr mIncomingStreamAddr = new IncomingStreamAddr(false, vhost.getName(), appName, appInstanceName, streamName);
 		
 		broadcastWebSocketStr(vhost, mWebSocketTest, gson.toJson(mIncomingStreamAddr));
