@@ -5,6 +5,7 @@ import com.wowza.wms.stream.IMediaStream;
 import java.util.Iterator;
 
 import com.google.gson.Gson;
+import com.wowza.wms.application.IApplicationInstance;
 import com.wowza.wms.client.IClient;
 import com.wowza.wms.http.IHTTPProvider;
 import com.wowza.wms.logging.WMSLoggerFactory;
@@ -52,36 +53,47 @@ public class IncomingListener extends MediaStreamActionNotify3Base
 		
 		return null;
 	}
+	
+	private void broadcastPublishStream(boolean isPublish, IMediaStream stream) {
+		IApplicationInstance appInst = stream.getStreams().getAppInstance();
+		IVHost vhost = appInst.getVHost();
+		String appName = appInst.getApplication().getName();
+		String appInstanceName = appInst.getName();
+		
+		WebSocket mWebSocketTest = getWebSocket( vhost );
+		IncomingStreamAddr mIncomingStreamAddr = new IncomingStreamAddr(isPublish, vhost.getName(), appName, appInstanceName, stream.getName());
+		
+		broadcastWebSocketStr(vhost, mWebSocketTest, gson.toJson(mIncomingStreamAddr));
+	}
 
 	@Override
 	public void onPublish(IMediaStream stream, String streamName, boolean isRecord, boolean isAppend)
 	{
+		/*
 		IClient client = stream.getClient();
 		IVHost vhost = client.getVHost();
 		String appName = client.getApplication().getName();
-		String appInstanceName =client.getAppInstance().getName();
+		String appInstanceName = client.getAppInstance().getName();
+		*/
+		/*IApplicationInstance appInst = stream.getStreams().getAppInstance();
+		IVHost vhost = appInst.getVHost();
+		String appName = appInst.getApplication().getName();
+		String appInstanceName = appInst.getName();
+		
 		
 		WebSocket mWebSocketTest = getWebSocket( vhost );
 		IncomingStreamAddr mIncomingStreamAddr = new IncomingStreamAddr(true, vhost.getName(), appName, appInstanceName, streamName);
 		
-		broadcastWebSocketStr(vhost, mWebSocketTest, gson.toJson(mIncomingStreamAddr));
-	
-		WMSLoggerFactory.getLogger(null).info("onPublish: " + stream.getContextStr());
+		broadcastWebSocketStr(vhost, mWebSocketTest, gson.toJson(mIncomingStreamAddr));*/
+		
+		broadcastPublishStream(true, stream);
+		WMSLoggerFactory.getLogger(null).info("onPublish: " + stream.getName());
 	}
 
 	@Override
 	public void onUnPublish(IMediaStream stream, String streamName, boolean isRecord, boolean isAppend)
 	{
-		IClient client = stream.getClient();
-		IVHost vhost = client.getVHost();
-		String appName = client.getApplication().getName();
-		String appInstanceName =client.getAppInstance().getName();
-		
-		WebSocket mWebSocketTest = getWebSocket( vhost );
-		IncomingStreamAddr mIncomingStreamAddr = new IncomingStreamAddr(false, vhost.getName(), appName, appInstanceName, streamName);
-		
-		broadcastWebSocketStr(vhost, mWebSocketTest, gson.toJson(mIncomingStreamAddr));
-		
+		broadcastPublishStream(false, stream);
 		WMSLoggerFactory.getLogger(null).info("onUnPublish: " + stream.getName());
 	}
 }
