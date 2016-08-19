@@ -27,7 +27,7 @@ public class IncomingListener extends MediaStreamActionNotify3Base
 	 */
 	private void broadcastWebSocketStr(IVHost vhost, WebSocket mWebSocket, String messageStr) {
 		boolean isMaskOutgoingMessages = vhost.getWebSocketContext().isMaskOutgoingMessages();
-		WebSocketMessage messageText = WebSocketMessage.createMessageText(isMaskOutgoingMessages, messageStr);
+		WebSocketMessage messageText = WebSocketMessage.createMessageText(isMaskOutgoingMessages, messageStr); // Websocket으로 전송할 메시지 생성
 		mWebSocket.broadcastWebSocketMessage(messageText);
 	}
 	
@@ -42,10 +42,10 @@ public class IncomingListener extends MediaStreamActionNotify3Base
 			HostPort hostPort = portList.get(i);
 			int port = hostPort.getPort();
 			
-			if( hostPort.getTypeStr().equals("Admin") ) {
+			if( hostPort.getTypeStr().equals("Admin") ) { // HTTP Provider를 가지고 있는 Admin HostPort 찾기
 				for(Iterator<IHTTPProvider> iter = hostPort.getHttpProviders().iterator(); iter.hasNext(); ) {
 					IHTTPProvider mIhttpProvider = iter.next();
-					if( mIhttpProvider instanceof WebSocket ) 
+					if( mIhttpProvider instanceof WebSocket ) // WebSocket 객체를 찾기
 						return (WebSocket) mIhttpProvider;
 				}
 			}
@@ -54,6 +54,11 @@ public class IncomingListener extends MediaStreamActionNotify3Base
 		return null;
 	}
 	
+	/**
+	 * IMediaStream에서 얻은 데이터를 Websocket을 통해 브로드캐스트
+	 * @param isPublish Publish이면 true, 아니면 false
+	 * @param stream publish되거나 unpublish된 IMediaStream객체
+	 */
 	private void broadcastPublishStream(boolean isPublish, IMediaStream stream) {
 		IApplicationInstance appInst = stream.getStreams().getAppInstance();
 		IVHost vhost = appInst.getVHost();
