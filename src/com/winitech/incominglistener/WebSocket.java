@@ -14,7 +14,7 @@ public class WebSocket extends HTTProvider2Base {
 	private static final Class<WebSocket> CLASS = WebSocket.class;
 	private static final String CLASSNAME = "WebSocket";
 	
-	// WebSocket listener
+	// 웹소켓 리스너
 	class MyWebSocketListener extends WebSocketEventNotifyBase
 	{
 		@Override
@@ -29,10 +29,10 @@ public class WebSocket extends HTTProvider2Base {
 			WMSLoggerFactory.getLogger(CLASS).info(CLASSNAME+"#MyWebSocketListener.onDestroy["+webSocketSession.getSessionId()+"]");
 		}
 
+		// 클라이언트에 메시지가 도착했을 때
 		@Override
 		public void onMessage(IWebSocketSession webSocketSession, WebSocketMessage message)
 		{
-			// echo messages we receive back to the browser
 			if (message.isText())
 			{
 				WebSocketMessage messageText = WebSocketMessage.createMessageText(webSocketSession.isMaskOutgoingMessages(), message.getValueString());
@@ -50,6 +50,7 @@ public class WebSocket extends HTTProvider2Base {
 		}
 	}
 
+	// 처음 Webscoket 요청이 왔을 때
 	public void onHTTPRequest(IVHost vhost, IHTTPRequest req, IHTTPResponse resp)
 	{
 		StackTraceElement[] ste = new Throwable().getStackTrace();
@@ -62,18 +63,16 @@ public class WebSocket extends HTTProvider2Base {
 		if (!doHTTPAuthentication(vhost, req, resp))
 			return;
 		
-		// is this an upgrade request
+		// HTTP 요청이 UpgradeRequest일 때(즉 Websocket 요청일 때)
 		if (req.isUpgradeRequest())
 		{
-			// it this an websocket upgrade request
 			String upgradeType = req.getHeader("upgrade");
 			if (upgradeType != null && upgradeType.equalsIgnoreCase(IWebSocketSession.HTTPHEADER_NAME))
 			{
-				// set response header to accept the upgrade
+				// 응답 또한 Upgrade로 헤더를 지정해서 Websocket 응답임을 알림
 				resp.setHeader("Upgrade", IWebSocketSession.HTTPHEADER_NAME);
 				resp.setHeader("Connection", "Upgrade");
 				
-				// set the security hash
 				String webSocketKey = req.getHeader(IWebSocketSession.HTTPHEADER_SECKEY);
 				if (webSocketKey != null)
 				{
@@ -82,17 +81,17 @@ public class WebSocket extends HTTProvider2Base {
 						resp.setHeader(IWebSocketSession.HTTPHEADER_SECACCEPT, digestStr);
 				}
 				
-				// set 101 response code to accept upgrade request
+				// websocket으로 전환됨을 클라이언트에 알림
 				resp.setResponseCode(101);
 				
-				// insert WebSocket listener for this session
+				// 해당 Websocket에 대한 리스터를 등록
 				resp.setUpgradeRequestProtocol(IHTTPResponse.UPGRADE_PROTOCOL_WEBSOCKETS, new MyWebSocketListener());
 			}
 			else
-				resp.setResponseCode(404); // return 404 if not websocket upgrade request
+				resp.setResponseCode(404); // Websocket 요청이 아닐시에
 		}
 		else
-			resp.setResponseCode(404); //return 404 if not upgrade request
+			resp.setResponseCode(404); // Websocket 요청이 아닐시에
 	}
 
 }
